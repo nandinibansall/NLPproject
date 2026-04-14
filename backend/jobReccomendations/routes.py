@@ -11,11 +11,10 @@ POST /api/recommend
 GET /api/health
     Health check
 """
-
 from flask import Blueprint, request, jsonify
-from app.pdf_extractor import extract_text_from_pdf
-from app.preprocessor import extract_features
-from app.recommender import recommend_jobs
+from pdf_extractor import extract_text_from_pdf
+from preprocessor import extract_features
+from recommender import recommend_jobs
 
 api_bp = Blueprint("api", __name__)
 
@@ -73,4 +72,14 @@ def recommend():
         },
         "recommendations": recommendations,
     }
-    return jsonify(response), 200
+
+    filtered = [
+    {
+        "title": r["title"],
+        "match_score": r["match_score"]
+    }
+    for r in recommendations
+]
+
+    return jsonify(filtered), 200
+    # return jsonify(recommendations), 200
