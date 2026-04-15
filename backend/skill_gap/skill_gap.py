@@ -1,5 +1,3 @@
-# Import JOB_PROFILES 
-# Adjust path if needed based on actual structure
 from backend.jobReccomendations.recommender import JOB_PROFILES
 def get_role_data(role):
     """
