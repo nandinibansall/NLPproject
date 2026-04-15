@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 from backend.jobReccomendations.recommender import JOB_PROFILES
+=======
+# Import JOB_PROFILES 
+# Adjust path if needed based on actual structure
+# from backend.jobReccomendations.recommender import JOB_PROFILES
+from jobReccomendations.recommender import JOB_PROFILES
+>>>>>>> a5fecf8 (Added LLM integration and fixed Flask API routes)
 def get_role_data(role):
     """
     Finds the job profile dictionary for a given role

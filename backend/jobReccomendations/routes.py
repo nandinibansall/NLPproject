@@ -1,8 +1,26 @@
-
+print("ROUTES FILE LOADED")
 from flask import Blueprint, request, jsonify
 from pdf_extractor import extract_text_from_pdf
 from preprocessor import extract_features
 from recommender import recommend_jobs
+
+# from flask import Blueprint, request, jsonify
+
+# from jobReccomendations.pdf_extractor import extract_text_from_pdf
+# from jobReccomendations.preprocessor import extract_features
+# from jobReccomendations.recommender import recommend_jobs
+
+# from skill_gap.skill_gap import get_skill_gap
+# from skill_gap.llm_module import get_course_suggestions
+import sys
+import os
+
+# add parent folder (backend) to path
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from skill_gap.skill_gap import get_skill_gap
+from skill_gap.llm_module import get_course_suggestions
+
 
 api_bp = Blueprint("api", __name__)
 
@@ -57,3 +75,36 @@ def recommend():
 ]
 
     return jsonify(filtered), 200
+
+
+
+@api_bp.route("/course-suggestions", methods=["POST"])
+def course_suggestions():
+    try:
+        data = request.json
+
+        if not data:
+            return jsonify({"error": "No JSON body provided"}), 400
+
+        user_skills = data.get("user_skills", [])
+        role = data.get("job_role", "")
+
+        if not role:
+            return jsonify({"error": "Job role is required"}), 400
+
+        # Step 1: Get skill gap
+        skill_gap_data = get_skill_gap(role, user_skills)
+
+        if "error" in skill_gap_data:
+            return jsonify(skill_gap_data), 400
+
+        # Step 2: Generate course suggestions
+        courses = get_course_suggestions(skill_gap_data)
+
+        return jsonify({
+            "skill_gap": skill_gap_data,
+            "courses": courses
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
