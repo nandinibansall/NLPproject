@@ -1,16 +1,4 @@
-"""
-routes.py
----------
-Flask API endpoints.
 
-POST /api/recommend
-    Accepts: multipart/form-data with field "resume" (PDF file)
-    Optional query param: top_n (default 5, max 10)
-    Returns: JSON with job recommendations
-
-GET /api/health
-    Health check
-"""
 from flask import Blueprint, request, jsonify
 from pdf_extractor import extract_text_from_pdf
 from preprocessor import extract_features
@@ -32,7 +20,6 @@ def health():
 
 @api_bp.route("/recommend", methods=["POST"])
 def recommend():
-    # ── Validate file presence ─────────────────────────────────────────────
     if "resume" not in request.files:
         return jsonify({"error": "No file provided. Send the PDF under the key 'resume'."}), 400
 
@@ -44,14 +31,12 @@ def recommend():
     if not _allowed_file(file.filename):
         return jsonify({"error": "Only PDF files are accepted."}), 400
 
-    # ── top_n param ────────────────────────────────────────────────────────
     try:
         top_n = int(request.args.get("top_n", 5))
-        top_n = max(1, min(top_n, 10))  # clamp between 1 and 10
+        top_n = max(1, min(top_n, 10))
     except ValueError:
         top_n = 5
 
-    # ── Pipeline ───────────────────────────────────────────────────────────
     try:
         file_bytes = file.read()
         raw_text = extract_text_from_pdf(file_bytes)
@@ -72,4 +57,3 @@ def recommend():
 ]
 
     return jsonify(filtered), 200
-    # return jsonify(recommendations), 200

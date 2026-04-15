@@ -1,19 +1,8 @@
-"""
-preprocessor.py
----------------
-Cleans raw resume text and extracts structured features:
-  - Skills (matched against a curated keyword list)
-  - Years of experience (regex-based extraction)
-  - Education level (degree detection)
-  - Domain keywords (for TF-IDF / similarity)
-"""
 
 import re
 import string
 from typing import Dict, List, Set
 
-
-# ── Stopwords (lightweight built-in set, no NLTK needed) ──────────────────────
 _STOPWORDS: Set[str] = {
     "i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your",
     "yours", "yourself", "he", "him", "his", "himself", "she", "her", "hers",
@@ -38,7 +27,6 @@ _STOPWORDS: Set[str] = {
     "required", "preferred", "proficient"
 }
 
-# ── Skill Keywords by Domain ───────────────────────────────────────────────────
 SKILL_KEYWORDS: Dict[str, List[str]] = {
     # Programming languages
     "python": ["python", "django", "flask", "fastapi", "pandas", "numpy", "scipy"],
@@ -123,7 +111,6 @@ SKILL_KEYWORDS: Dict[str, List[str]] = {
                  "rtos", "firmware", "verilog", "vhdl", "pcb design"],
 }
 
-# ── Education Degrees ─────────────────────────────────────────────────────────
 _EDUCATION_PATTERNS: Dict[str, str] = {
     "phd": r"\b(ph\.?d|doctor of philosophy|doctorate)\b",
     "masters": r"\b(m\.?s|m\.?e|m\.?tech|msc|master[s]? of (science|engineering|arts|business|technology)|mba|m\.?b\.?a)\b",
@@ -132,7 +119,6 @@ _EDUCATION_PATTERNS: Dict[str, str] = {
     "high_school": r"\b(high school|secondary school|12th|xii|hssc)\b",
 }
 
-# ── Experience Regex ───────────────────────────────────────────────────────────
 _EXPERIENCE_PATTERNS = [
     r"(\d+)\+?\s*years?\s*(of\s*)?(experience|exp)",
     r"experience[:\s]+(\d+)\+?\s*years?",
@@ -140,29 +126,15 @@ _EXPERIENCE_PATTERNS = [
 ]
 
 
-# ── Public API ─────────────────────────────────────────────────────────────────
-
 def clean_text(text: str) -> str:
     """Lowercase, remove punctuation, collapse whitespace."""
     text = text.lower()
-    # Keep alphanumeric, spaces, slashes (for c/c++), dots, pluses
     text = re.sub(r"[^\w\s/\.\+#]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
 
 def extract_features(raw_text: str) -> Dict:
-    """
-    Extract structured features from raw resume text.
-
-    Returns a dict with:
-        - cleaned_text (str)
-        - tokens (List[str])
-        - skills (Dict[domain -> List[matched_keywords]])
-        - skill_domains (List[str])  – flat list of matched domains
-        - education_level (str)
-        - years_experience (int | None)
-    """
     cleaned = clean_text(raw_text)
     tokens = [t for t in cleaned.split() if t not in _STOPWORDS and len(t) > 1]
 

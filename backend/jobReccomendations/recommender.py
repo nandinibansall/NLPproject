@@ -1,19 +1,3 @@
-"""
-recommender.py
---------------
-Core recommendation engine.
-
-Strategy:
-1. Each job role has a "profile" – a weighted list of required/preferred skill
-   domains and a description used for TF-IDF similarity.
-2. We score each job by:
-     (a) Domain overlap score  – how many of its required domains appear in the resume
-     (b) TF-IDF cosine similarity – between the resume text and job description text
-3. Final score = 0.6 * domain_score + 0.4 * tfidf_score
-4. Top-N jobs are returned with match percentage and matched skills.
-
-No external ML model download is required – works fully offline.
-"""
 
 from __future__ import annotations
 import math
@@ -22,19 +6,8 @@ from collections import Counter
 from typing import Dict, List, Tuple
 
 
-# ── Job Role Database ──────────────────────────────────────────────────────────
-#
-# Each entry:
-#   "title"            : Job title shown to user
-#   "required_domains" : Skill domains (from preprocessor.py) that are core to the role
-#   "preferred_domains": Nice-to-have skill domains
-#   "min_experience"   : Minimum years experience (None = no requirement)
-#   "min_education"    : Minimum education level (None = any)
-#   "description"      : Free-text description used for TF-IDF (use natural resume-like language)
-#
-
 JOB_PROFILES: List[Dict] = [
-    # ── Software Engineering ──────────────────────────────────────────────────
+    # Software Engineering 
     {
         "title": "Backend Software Engineer",
         "required_domains": ["python", "sql", "web_development"],
@@ -108,7 +81,7 @@ JOB_PROFILES: List[Dict] = [
         ),
     },
 
-    # ── Data / AI ─────────────────────────────────────────────────────────────
+    # Data / AI 
     {
         "title": "Data Scientist",
         "required_domains": ["data_science", "machine_learning"],
@@ -195,7 +168,7 @@ JOB_PROFILES: List[Dict] = [
         ),
     },
 
-    # ── Cybersecurity ─────────────────────────────────────────────────────────
+    # Cybersecurity
     {
         "title": "Cybersecurity Analyst",
         "required_domains": ["security"],
@@ -221,7 +194,7 @@ JOB_PROFILES: List[Dict] = [
         ),
     },
 
-    # ── Design / UX ───────────────────────────────────────────────────────────
+    # Design / UX
     {
         "title": "UI/UX Designer",
         "required_domains": ["design"],
@@ -235,7 +208,7 @@ JOB_PROFILES: List[Dict] = [
         ),
     },
 
-    # ── Embedded / Hardware ───────────────────────────────────────────────────
+    # Embedded / Hardware
     {
         "title": "Embedded Systems Engineer",
         "required_domains": ["embedded"],
@@ -249,7 +222,7 @@ JOB_PROFILES: List[Dict] = [
         ),
     },
 
-    # ── Finance / Quant ───────────────────────────────────────────────────────
+    # Finance / Quant
     {
         "title": "Financial Analyst",
         "required_domains": ["finance"],
@@ -275,7 +248,7 @@ JOB_PROFILES: List[Dict] = [
         ),
     },
 
-    # ── Marketing / Growth ────────────────────────────────────────────────────
+    #  Marketing / Growth
     {
         "title": "Digital Marketing Analyst",
         "required_domains": ["marketing"],
@@ -289,7 +262,7 @@ JOB_PROFILES: List[Dict] = [
         ),
     },
 
-    # ── Project Management ────────────────────────────────────────────────────
+    # Project Management 
     {
         "title": "Technical Project Manager",
         "required_domains": ["project_management"],
@@ -315,7 +288,7 @@ JOB_PROFILES: List[Dict] = [
         ),
     },
 
-    # ── Healthcare / Bio ──────────────────────────────────────────────────────
+    # Healthcare / Bio 
     {
         "title": "Health Informatics / Clinical Data Analyst",
         "required_domains": ["healthcare"],
@@ -329,7 +302,7 @@ JOB_PROFILES: List[Dict] = [
         ),
     },
 
-    # ── General Software Roles ────────────────────────────────────────────────
+    #  General Software Roles
     {
         "title": "Software Quality Assurance (QA) Engineer",
         "required_domains": ["web_development"],
@@ -357,7 +330,7 @@ JOB_PROFILES: List[Dict] = [
 ]
 
 
-# ── Education Hierarchy ────────────────────────────────────────────────────────
+# Education Hierarchy
 _EDU_RANK: Dict[str, int] = {
     "unknown": 0,
     "high_school": 1,
@@ -368,7 +341,7 @@ _EDU_RANK: Dict[str, int] = {
 }
 
 
-# ── TF-IDF Helpers ─────────────────────────────────────────────────────────────
+#TF-IDF
 
 def _tokenize(text: str) -> List[str]:
     return re.findall(r"[a-z0-9]+", text.lower())
@@ -406,27 +379,15 @@ def _cosine(v1: Dict[str, float], v2: Dict[str, float]) -> float:
     return dot / (mag1 * mag2)
 
 
-# ── Main Recommender ───────────────────────────────────────────────────────────
+#Main Recommender 
 
 def recommend_jobs(features: Dict, top_n: int = 5) -> List[Dict]:
-    """
-    Given extracted resume features, return top_n job recommendations.
-
-    Args:
-        features : Output of preprocessor.extract_features()
-        top_n    : Number of top jobs to return
-
-    Returns:
-        List of dicts with title, match_score, matched_skills, reasoning
-    """
     resume_text = features["cleaned_text"]
     resume_tokens = _tokenize(resume_text)
     skill_domains: List[str] = features["skill_domains"]
     skills: Dict = features["skills"]
     edu_level: str = features["education_level"]
     years_exp: int | None = features["years_experience"]
-
-    # Build TF-IDF corpus: [resume] + all job descriptions
     job_desc_tokens = [_tokenize(j["description"]) for j in JOB_PROFILES]
     corpus = [resume_tokens] + job_desc_tokens
     idf = _idf(corpus)
@@ -437,7 +398,6 @@ def recommend_jobs(features: Dict, top_n: int = 5) -> List[Dict]:
     results: List[Dict] = []
 
     for idx, job in enumerate(JOB_PROFILES):
-        # ── Domain overlap score ──────────────────────────────────────────────
         required = set(job["required_domains"])
         preferred = set(job.get("preferred_domains", []))
         all_expected = required | preferred
@@ -448,38 +408,31 @@ def recommend_jobs(features: Dict, top_n: int = 5) -> List[Dict]:
         if not all_expected:
             domain_score = 0.0
         else:
-            # Required domains worth 2×, preferred 1×
             numerator = len(matched_required) * 2 + len(matched_preferred)
             denominator = len(required) * 2 + len(preferred)
             domain_score = numerator / denominator if denominator else 0.0
 
-        # ── TF-IDF similarity ─────────────────────────────────────────────────
+  
         tfidf_score = _cosine(resume_vec, job_vecs[idx])
 
-        # ── Education penalty ─────────────────────────────────────────────────
+
         edu_penalty = 0.0
         if job.get("min_education"):
             required_edu_rank = _EDU_RANK.get(job["min_education"], 0)
             user_edu_rank = _EDU_RANK.get(edu_level, 0)
             if user_edu_rank < required_edu_rank:
-                edu_penalty = 0.15  # reduce final score slightly
+                edu_penalty = 0.15 
 
-        # ── Experience penalty ────────────────────────────────────────────────
         exp_penalty = 0.0
         min_exp = job.get("min_experience")
         if min_exp and years_exp is not None and years_exp < min_exp:
             exp_penalty = 0.10
-
-        # ── Combined score ────────────────────────────────────────────────────
         raw_score = 0.60 * domain_score + 0.40 * tfidf_score
         final_score = max(0.0, raw_score - edu_penalty - exp_penalty)
 
-        # ── Matched skill keywords for display ───────────────────────────────
         matched_skill_keywords: List[str] = []
         for domain in (matched_required | matched_preferred):
             matched_skill_keywords.extend(skills.get(domain, []))
-
-        # ── Build reasoning string ────────────────────────────────────────────
         reasoning = _build_reasoning(
             job, matched_required, matched_preferred,
             edu_level, years_exp, edu_penalty, exp_penalty
@@ -495,8 +448,6 @@ def recommend_jobs(features: Dict, top_n: int = 5) -> List[Dict]:
                 "reasoning": reasoning,
             }
         )
-
-    # Sort by match_score descending, return top N
     results.sort(key=lambda r: r["match_score"], reverse=True)
     return results[:top_n]
 
