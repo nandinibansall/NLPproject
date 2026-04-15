@@ -31,7 +31,6 @@ def get_course_suggestions(skill_gap_data):
     - Roadmap steps
     """
 
-    # ✅ FIXED MODEL (guaranteed working)
     model_name = "openai/gpt-4o-mini"
     print("MODEL USED:", model_name)
 
