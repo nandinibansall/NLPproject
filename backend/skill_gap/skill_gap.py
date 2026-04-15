@@ -53,9 +53,9 @@ def get_skill_gap(role, user_skills):
 
 
 # 🔹 Testing (you can run this file directly)
-if __name__ == "__main__":
-    test_role = "Frontend Developer"
-    test_user_skills = []
+# if __name__ == "__main__":
+#     test_role = "Frontend Developer"
+#     test_user_skills = []
 
-    result = get_skill_gap(test_role, test_user_skills)
-    print(result)
+#     result = get_skill_gap(test_role, test_user_skills)
+#     print(result)
