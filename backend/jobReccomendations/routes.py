@@ -62,16 +62,6 @@ def recommend():
     except Exception as e:
         return jsonify({"error": f"Internal processing error: {str(e)}"}), 500
 
-    # ── Response ───────────────────────────────────────────────────────────
-    response = {
-        "status": "success",
-        "resume_summary": {
-            "detected_education": features["education_level"],
-            "detected_experience_years": features["years_experience"],
-            "detected_skill_domains": features["skill_domains"],
-        },
-        "recommendations": recommendations,
-    }
 
     filtered = [
     {

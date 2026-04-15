@@ -3,7 +3,7 @@ from routes import api_bp
 
 def create_app():
     app = Flask(__name__)
-    app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # 5 MB max upload
+    app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024 
     app.register_blueprint(api_bp, url_prefix="/api")
     return app
 
