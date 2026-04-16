@@ -2,6 +2,10 @@ import os
 import sys
 
 from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Ensure the workspace root is on sys.path when running this file directly.
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -12,6 +16,7 @@ from backend.jobReccomendations.pdf_extractor import extract_text_from_pdf
 from backend.jobReccomendations.preprocessor import extract_features
 from backend.jobReccomendations.recommender import JOB_PROFILES, recommend_jobs
 from backend.skill_gap.skill_gap import get_skill_gap
+from backend.skill_gap.llm_module import get_course_suggestions
 
 ALLOWED_EXTENSION = "pdf"
 MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB
@@ -78,10 +83,25 @@ def create_app() -> Flask:
         if not isinstance(user_skills, list):
             return {"error": "Skills must be provided as a list of strings in the JSON payload."}, 400
 
+        # 🔹 Existing skill gap logic
         result = get_skill_gap(role, [str(skill) for skill in user_skills])
+
+        # 🔥 NEW: Add LLM course suggestions
+        # 🔥 NEW: Add LLM course suggestions
+        try:
+            courses_data = get_course_suggestions(result)
+
+            # ✅ FIX: match frontend structure
+            result["courses"] = courses_data.get("courses", [])
+            result["roadmap"] = courses_data.get("roadmap", [])
+
+        except Exception as e:
+            result["courses"] = []
+            result["roadmap"] = []
+            result["error"] = str(e)
+
         status_code = 200 if "error" not in result else 404
         return jsonify(result), status_code
-
     @app.route("/api/job-roles", methods=["GET"])
     def job_roles() -> tuple[dict, int]:
         return jsonify(

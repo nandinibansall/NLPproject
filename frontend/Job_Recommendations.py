@@ -47,7 +47,7 @@ if "jobs" in st.session_state:
             <div style="
                 padding:20px;
                 border-radius:15px;
-                background-color:#1e1e1e;
+                background-color:#000000;
                 margin-bottom:15px;
                 box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             ">
