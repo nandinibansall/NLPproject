@@ -127,7 +127,7 @@ if "skill_gap" in st.session_state:
         st.markdown("## Learning Roadmap")
 
         for i, step in enumerate(data["roadmap"], 1):
-            st.markdown(f"**Step {i}:** {step}")
+            st.markdown(f"{step}")
 
 # -------------------------------
 # Back Button
