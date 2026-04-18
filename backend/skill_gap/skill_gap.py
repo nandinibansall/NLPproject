@@ -1,4 +1,6 @@
 from jobReccomendations.recommender import JOB_PROFILES
+from .llm_module import get_course_suggestions
+
 def get_role_data(role):
     """
     Finds the job profile dictionary for a given role
@@ -42,12 +44,22 @@ def get_skill_gap(role, user_skills):
             / len(required_skills)
         ) * 100
 
-    return {
+    skill_gap_data = {
         "role": role,
         "missing_required_skills": missing_required,
         "missing_preferred_skills": missing_preferred,
         "match_percentage": round(match_percentage, 2)
     }
+
+    # Add course recommendations
+    try:
+        course_suggestions = get_course_suggestions(skill_gap_data)
+        skill_gap_data["course_recommendations"] = course_suggestions
+    except Exception as e:
+        skill_gap_data["course_recommendations"] = f"Error generating recommendations: {str(e)}"
+
+    return skill_gap_data
+
 
 
 # 🔹 Testing (you can run this file directly)
