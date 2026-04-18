@@ -3,15 +3,6 @@ from flask import Blueprint, request, jsonify
 from pdf_extractor import extract_text_from_pdf
 from preprocessor import extract_features
 from recommender import recommend_jobs
-
-# from flask import Blueprint, request, jsonify
-
-# from jobReccomendations.pdf_extractor import extract_text_from_pdf
-# from jobReccomendations.preprocessor import extract_features
-# from jobReccomendations.recommender import recommend_jobs
-
-# from skill_gap.skill_gap import get_skill_gap
-# from skill_gap.llm_module import get_course_suggestions
 import sys
 import os
 
