@@ -1,4 +1,4 @@
-from jobReccomendations.recommender import JOB_PROFILES
+from backend.jobReccomendations.recommender import JOB_PROFILES
 from .llm_module import get_course_suggestions
 
 def get_role_data(role):
