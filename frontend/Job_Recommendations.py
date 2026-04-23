@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-BACKEND_URL = "http://127.0.0.1:5000/api"
+BACKEND_URL = "https://nlpprojectbackend.onrender.com/api"
 
 st.set_page_config(page_title="Career Assistant", layout="wide")
 
