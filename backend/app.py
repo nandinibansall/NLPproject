@@ -3,6 +3,7 @@ import sys
 
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,6 +25,7 @@ MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB
 
 def create_app() -> Flask:
     app = Flask(__name__)
+    CORS(app)
     app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
 
     @app.route("/api/health", methods=["GET"])
@@ -130,6 +132,7 @@ def _allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() == ALLOWED_EXTENSION
 
 
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000)
