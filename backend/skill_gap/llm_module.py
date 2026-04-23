@@ -8,12 +8,11 @@ print("THIS IS THE FILE BEING EXECUTED")
 
 # ✅ Load .env safely
 env_path = Path(__file__).parent / ".env"
-os.environ.pop("OPENROUTER_API_KEY", None)
-load_dotenv(dotenv_path=env_path, override=True)
+# os.environ.pop("OPENROUTER_API_KEY", None)
+load_dotenv(override=False)
 
 api_key = os.getenv("OPENROUTER_API_KEY")
 
-print("📂 ENV PATH:", env_path)
 print("🔑 API KEY:", api_key)
 
 if not api_key:
