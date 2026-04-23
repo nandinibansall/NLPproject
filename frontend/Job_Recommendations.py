@@ -57,7 +57,22 @@ if "jobs" in st.session_state:
             </div>
             """, unsafe_allow_html=True)
 
-            # Button to go to skill gap page
-            if st.button(f"Check Skill Gap → {job['title']}", key=job["title"]):
-                st.session_state["selected_job"] = job
-                st.switch_page("pages/1_Skill_Gap.py")
+            # -------------------------------
+            # Action Buttons (3 buttons)
+            # -------------------------------
+            colA, colB, colC = st.columns(3)
+
+            with colA:
+                if st.button(f" Skill Gap", key=f"gap_{job['title']}"):
+                    st.session_state["selected_job"] = job
+                    st.switch_page("pages/1_Skill_Gap.py")
+
+            with colB:
+                if st.button(f" Internships", key=f"intern_{job['title']}"):
+                    st.session_state["selected_job"] = job
+                    st.switch_page("pages/2_Internship_Suggestions.py")
+
+            with colC:
+                if st.button(f" Projects", key=f"proj_{job['title']}"):
+                    st.session_state["selected_job"] = job
+                    st.switch_page("pages/3_Project_Suggestions.py")

@@ -18,6 +18,11 @@ if "selected_job" not in st.session_state:
 
 job = st.session_state["selected_job"]
 
+#  Reset skill gap if job changes
+if "last_job" not in st.session_state or st.session_state["last_job"] != job["title"]:
+    st.session_state.pop("skill_gap", None)
+    st.session_state["last_job"] = job["title"]
+
 # -------------------------------
 # Job Info
 # -------------------------------
@@ -120,14 +125,14 @@ if "skill_gap" in st.session_state:
             </div>
             """, unsafe_allow_html=True)
 
-    # -------------------------------
-    # Roadmap (UPDATED)
-    # -------------------------------
-    if "roadmap" in data:
-        st.markdown("## Learning Roadmap")
+        # -------------------------------
+        # Roadmap (FIXED)
+        # -------------------------------
+        if data.get("roadmap"):
+            st.markdown("## Learning Roadmap")
 
-        for i, step in enumerate(data["roadmap"], 1):
-            st.markdown(f"{step}")
+            for step in data["roadmap"]:
+                st.markdown(f"**Step {step.get('step', '')}:** {step.get('description', '')}")
 
 # -------------------------------
 # Back Button

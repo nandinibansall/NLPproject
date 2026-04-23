@@ -79,29 +79,37 @@ def create_app() -> Flask:
         user_skills = payload.get("skills")
 
         if not role or not isinstance(role, str):
-            return {"error": "Role must be provided as a string in the JSON payload."}, 400
+            return {"error": "Role must be provided as a string."}, 400
         if not isinstance(user_skills, list):
-            return {"error": "Skills must be provided as a list of strings in the JSON payload."}, 400
+            return {"error": "Skills must be a list."}, 400
 
-        # 🔹 Existing skill gap logic
+        # 🔹 Base skill gap
         result = get_skill_gap(role, [str(skill) for skill in user_skills])
 
-        # 🔥 NEW: Add LLM course suggestions
-        # 🔥 NEW: Add LLM course suggestions
+        # 🔥 FIX: Send FULL CONTEXT to LLM
         try:
-            courses_data = get_course_suggestions(result)
+            courses_data = get_course_suggestions({
+                "role": role,
+                "user_skills": user_skills,
+                "missing_required": result.get("missing_required", []),
+                "missing_preferred": result.get("missing_preferred", [])
+            })
 
-            # ✅ FIX: match frontend structure
+            # ✅ Attach all fields (important for UI)
             result["courses"] = courses_data.get("courses", [])
             result["roadmap"] = courses_data.get("roadmap", [])
+            result["projects"] = courses_data.get("projects", [])
+            result["internships"] = courses_data.get("internships", [])
 
         except Exception as e:
             result["courses"] = []
             result["roadmap"] = []
+            result["projects"] = []
+            result["internships"] = []
             result["error"] = str(e)
 
-        status_code = 200 if "error" not in result else 404
-        return jsonify(result), status_code
+        return jsonify(result), 200
+
     @app.route("/api/job-roles", methods=["GET"])
     def job_roles() -> tuple[dict, int]:
         return jsonify(

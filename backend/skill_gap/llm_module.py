@@ -21,37 +21,26 @@ if not api_key:
 
 
 def get_course_suggestions(skill_gap_data):
-
-    missing_required = skill_gap_data.get("missing_required_skills", [])
-    missing_preferred = skill_gap_data.get("missing_preferred_skills", [])
+    
+    # ✅ FIXED KEYS (match frontend)
+    missing_required = skill_gap_data.get("missing_required", [])
+    missing_preferred = skill_gap_data.get("missing_preferred", [])
     role = skill_gap_data.get("role", "role")
     user_skills = skill_gap_data.get("user_skills", [])
 
-    # 🔥 UPDATED PROMPT (FULL FEATURE)
     prompt = f"""
     You are an expert AI career mentor.
 
-    User wants to become: {role}
+    Target Role: {role}
 
     User Skills: {user_skills}
     Missing Required Skills: {missing_required}
     Missing Preferred Skills: {missing_preferred}
 
-    Return ONLY valid JSON (no markdown, no explanation).
+    Return ONLY valid JSON.
 
     FORMAT:
     {{
-      "job_recommendations": [
-        {{
-          "title": "",
-          "score": 0
-        }}
-      ],
-      "extracted_skills": [],
-      "skill_gap": {{
-        "missing_required": [],
-        "missing_preferred": []
-      }},
       "courses": [
         {{
           "course_name": "",
@@ -60,93 +49,77 @@ def get_course_suggestions(skill_gap_data):
           "link": ""
         }}
       ],
-      "projects": [],
-      "roadmap": [],
-      "internships": []
+      "projects": [
+        {{
+          "project_name": "",
+          "description": "",
+          "link": ""
+        }}
+      ],
+      "roadmap": [
+        {{
+          "step": 1,
+          "description": ""
+        }}
+      ],
+      "internships": [
+        {{
+          "title": "",
+          "platform": "",
+          "link": ""
+        }}
+      ]
     }}
 
     Rules:
-    - Job score must be 0–100
-    - Courses must be real (Coursera, Udemy, etc.)
-    - Projects must be resume-worthy
+    - Give 3–5 courses
+    - Give 2–3 projects
     - Roadmap must be step-by-step
-    - Internships must include platforms (LinkedIn, Internshala, etc.)
-    - DO NOT include any text outside JSON
+    - Keep response clean JSON only
     """
 
     url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
         "Authorization": f"Bearer {api_key}",
-        "HTTP-Referer": "http://localhost:3000",
-        "X-Title": "Career Assistant App",
         "Content-Type": "application/json"
     }
 
     data = {
-        # ✅ FIXED MODEL (important)
+        # ✅ FREE MODEL
         "model": "openai/gpt-4o-mini",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.3
+        # "model": "meta-llama/llama-3-70b-instruct",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.4
     }
 
     try:
-        print("🚀 Sending request...")
-
         response = requests.post(url, headers=headers, json=data)
 
-        print("🧪 STATUS CODE:", response.status_code)
-        print("🧾 RAW RESPONSE:", response.text[:500])
-
         if response.status_code != 200:
-            raise ValueError(f"API Error: {response.text}")
+            raise ValueError(response.text)
 
         result = response.json()
-
         raw_text = result["choices"][0]["message"]["content"].strip()
 
-        print("🧾 LLM OUTPUT:\n", raw_text)
-
-        # ✅ Clean markdown if present
+        # Clean markdown
         if raw_text.startswith("```"):
             raw_text = raw_text.replace("```json", "").replace("```", "").strip()
 
-        # ✅ Parse JSON
         parsed = json.loads(raw_text)
-        print("✅ JSON parsed successfully")
 
-        # ✅ Safety defaults (no crash in frontend)
-        parsed.setdefault("job_recommendations", [])
-        parsed.setdefault("extracted_skills", [])
-        parsed.setdefault("skill_gap", {
-            "missing_required": [],
-            "missing_preferred": []
-        })
-        parsed.setdefault("courses", [])
-        parsed.setdefault("projects", [])
-        parsed.setdefault("roadmap", [])
-        parsed.setdefault("internships", [])
-
-        # ✅ Ensure course links exist
-        for course in parsed.get("courses", []):
-            if "link" not in course:
-                course["link"] = "#"
-
-        return parsed
+        # ✅ SAFE DEFAULTS (important for UI)
+        return {
+            "courses": parsed.get("courses", []),
+            "projects": parsed.get("projects", []),
+            "roadmap": parsed.get("roadmap", []),
+            "internships": parsed.get("internships", [])
+        }
 
     except Exception as e:
         print("🔥 ERROR:", str(e))
 
-        # ✅ Safe fallback (no frontend crash)
         return {
-            "job_recommendations": [],
-            "extracted_skills": [],
-            "skill_gap": {
-                "missing_required": missing_required,
-                "missing_preferred": missing_preferred
-            },
             "courses": [],
             "projects": [],
             "roadmap": [],
