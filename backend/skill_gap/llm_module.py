@@ -86,8 +86,8 @@ def get_course_suggestions(skill_gap_data):
 
     data = {
         # ✅ FREE MODEL
-        "model": "openai/gpt-4o-mini",
-        # "model": "meta-llama/llama-3-70b-instruct",
+        # "model": "openai/gpt-4o-mini",
+        "model": "meta-llama/llama-3-70b-instruct",
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.4
     }
